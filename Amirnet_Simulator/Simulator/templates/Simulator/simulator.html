@@ -1,0 +1,252 @@
+{% extends 'Simulator/simulator_layout.html' %}
+{% block title %}Simulator{% endblock %}
+{% block scripts %}
+<style>
+    
+    
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+
+    const cards = document.querySelectorAll('.card');
+    const questions = document.querySelectorAll('.question');
+    const prevqtn = document.querySelector('#prevqtn');
+    const nextqtn = document.querySelector('#nextqtn');
+    const nextchapter = document.querySelector('#nextchapter');
+    // const answerbuttons = document.querySelectorAll('#answer');
+    const answerinputs = document.querySelectorAll('.input-answer');
+    const timers = document.querySelectorAll('#timer');
+    const chapterdislpays = document.querySelectorAll('.chapter-display');
+    const submitform = document.querySelector('#submitform');
+    const submitinput = document.querySelector('#submitinput');
+    const finishbtn = document.querySelector('#btn-finish');
+    var chaptercnt = 0;
+    var questioncnt = 1;
+    var answerjson = {};
+    var currenttimer = getCurrentTimer();
+    var timerinseconds = parseInt(currenttimer.getAttribute('data-time')*60);
+    var activatetimer = setInterval(function(){},0);
+    var currentchapter = getCurrentChapter();
+    
+
+    nextChapterFunction();
+    displayChapter();
+    displayQuestions();
+    
+    prevqtn.style.display = 'none';
+    nextchapter.style.display = 'none';
+
+    prevqtn.onclick = function() {prevQuestionClick()};
+    nextqtn.onclick = function() {nextQuestionClick()};
+    nextchapter.onclick = function() {nextChapterClick()};
+    finishbtn.onclick = function() {finishTest();}
+    
+    answerinputs.forEach(radio => {
+        radio.oninput = ()=>{
+            answerjson[radio.getAttribute('name')] = radio.getAttribute('value');
+            
+            console.log(answerjson);
+        }
+    });
+    
+    function displayChapter(){
+        cards.forEach(card => {
+            if (parseInt(card.getAttribute('data-chapterorder')) != chaptercnt){
+                card.style.display = 'none';
+            }
+            else{
+                card.style.display = 'block';
+            }
+        });
+    };
+
+    function displayQuestions(){
+        questions.forEach(question => {
+            if (parseInt(question.getAttribute('data-order')) != questioncnt){
+                question.style.display = 'none';
+            }
+            else{
+                question.style.display = 'block';
+            }
+        });
+    };
+
+    
+    function nextQuestionClick(){
+        questioncnt ++;
+        if (questioncnt == currentchapter.getAttribute('data-maxquestion') && chaptercnt < 6){
+            nextqtn.style.display = 'none';
+            prevqtn.style.display = 'block';
+            nextchapter.style.display = 'block';
+        }
+        else {
+            if (questioncnt == currentchapter.getAttribute('data-maxquestion') && chaptercnt == 6){
+                nextqtn.style.display = 'none';
+                prevqtn.style.display = 'block';
+                nextchapter.style.display = 'none';
+                submitform.style.display = 'block';
+            }
+            else{
+            nextqtn.style.display = 'block';
+            prevqtn.style.display = 'block';
+            nextchapter.style.display = 'none';
+            submitform.style.display = 'none';
+            }
+        }
+        displayQuestions();
+    };
+    function prevQuestionClick(){
+        questioncnt --;
+        if (questioncnt <= 1){
+            prevqtn.style.display = 'none';
+            nextqtn.style.display = 'block';
+            nextchapter.style.display = 'none';
+        }
+        else {
+            prevqtn.style.display = 'block';
+            nextqtn.style.display = 'block';
+            nextchapter.style.display = 'none';
+        }
+        submitform.style.display = 'none';
+        displayQuestions();
+    };
+    function nextChapterClick(){
+        if(window.confirm('האם אתה בטוח שתרצה לעבור פרק לפני תום הזמן?') || chaptercnt == 0){
+            nextChapterFunction();
+        }
+    };
+    function nextChapterFunction(){
+        clearInterval(activatetimer);
+        chaptercnt ++;
+        questioncnt = 1;
+        displayChapter();
+        displayQuestions();
+        updateChapterDisplay();
+        currentchapter = getCurrentChapter();
+        nextchapter.style.display='none';
+        prevqtn.style.display='none';
+        nextqtn.style.display = 'block';
+        currenttimer = getCurrentTimer()
+        timerinseconds = parseInt(currenttimer.getAttribute('data-time')*60);
+        activatetimer = setInterval(function(){
+            activateTimer(currenttimer);
+        },1000)
+    };
+
+    function activateTimer(currenttimer){
+        timerinseconds --;
+        let minutes = Math.floor(timerinseconds / 60);
+        let seconds = timerinseconds % 60;
+        currenttimer.innerHTML = minutes + 'm '+ seconds + 's';
+        if (timerinseconds <= 0 && chaptercnt < 6){
+            clearInterval();
+            nextChapterFunction();
+        }
+        if (timerinseconds <= 0 && chaptercnt >= 6){
+            clearInterval();
+            finishTest();
+        }
+    }
+    function getCurrentTimer(){
+        let toreturn = null;
+        timers.forEach(timer => {
+            if (timer.getAttribute('data-chapterorder') == chaptercnt || (chaptercnt == 0 && timer.getAttribute('data-chapterorder') == 1)){
+                console.log('returned timer '+timer);
+                toreturn = timer;
+            }
+        });
+        return toreturn;
+    }
+    function getCurrentChapter(){
+        let toreturn = null;
+        cards.forEach(card => {
+            if (card.getAttribute('data-chapterorder') == chaptercnt || (chaptercnt == 0 && card.getAttribute('data-chapterorder') == 1)){
+                console.log('returned chapter card '+card);
+                toreturn = card;
+            }
+        });
+        return toreturn;
+    }
+
+    function updateChapterDisplay(){
+        chapterdislpays.forEach(cd =>{
+            if (cd.getAttribute('data-order') == chaptercnt || (chaptercnt == 0 && cd.getAttribute('data-chapterorder') == 1)){
+                cd.classList.replace('btn-secondary','btn-primary');
+            }
+            else{
+                cd.classList.replace('btn-primary','btn-secondary');
+            }
+        })
+    }
+
+    
+    function finishTest(){
+        submitinput.value = answerjson;
+        submitform.submit();
+    }
+
+});
+</script>
+{% endblock %}
+{% block body %}
+
+{% if chapters %}
+    <!-- <ol>
+        {% for chapter in chapters %}
+        <li>{{ chapter }}</li>
+        {% endfor %}
+    </ol> -->
+
+    <div class="div-chapter-display">
+    {% for chapter in chapters %}
+        <div class="chapter-display btn-secondary" data-order="{{chapter.order}}">{{chapter.title}}</div>
+    {% endfor %}
+    </div>
+
+    {% for chapter in chapters %}
+    
+    <div class="card" id="chapter-{{chapter.order}}" data-chapterorder="{{chapter.order}}" data-maxquestion="{{chapter.questioncnt}}">
+        <div class="timer" id="timer" data-time="{{chapter.time}}" data-chapterorder="{{chapter.order}}"></div>
+        <div class="card-body">
+            <div class="card-title" id="card-title">{{chapter.title}}</div>
+            {% for question in chapter.questions %}
+            <div class="question" name="question-{{question.order}}" id="question-{{question.order}}" data-order="{{question.order}}">
+            <div class="card-text">{{question.question}}</div>
+            <div class="div-answers">
+                <table class="table table-borderless">
+                    {% for order,answer in question.answers.items %}
+                        <tr>
+                            <td><input class="input-answer" type="radio" name="{{chapter.order}}-{{question.order}}" value="{{order}}"></td>
+                            <td><span>{{answer}}</span></td>
+                        </tr>
+                        <!-- <li type="none">{{answer}}</li> -->
+                    {% endfor %}
+                </table>
+            </div>
+            <!-- replace name with question ID -->
+            <!-- <button id="answer" class="btn-secondary" name="{{chapter.order}}-{{question.order}}" data-ansnbr="1">1</button>
+            <button id="answer" class="btn-secondary" name="{{chapter.order}}-{{question.order}}" data-ansnbr="2">2</button>
+            <button id="answer" class="btn-secondary" name="{{chapter.order}}-{{question.order}}" data-ansnbr="3">3</button>
+            <button id="answer" class="btn-secondary" name="{{chapter.order}}-{{question.order}}" data-ansnbr="4">4</button> -->
+            
+            </div>
+            {% endfor %}
+        </div>
+    
+        
+        
+    </div>
+    {% endfor %}
+    <div class="div-buttons">
+        <button id="prevqtn" class="btn-secondary" onclick="prevQuestionClick()">Previous Question</button>
+        <button id="nextqtn" class="btn-primary" onclick="nextQuestionClick()">Next Question</button>
+        <button id="nextchapter" class="btn-success" onclick="nextChapterClick()">Next Chapter</button>
+    </div>
+
+    <form style="display: none;" id="submitform">
+        {% csrf_token %}
+        <input type="hidden" id="submitinput">
+        <button id="btn-finish" class="btn-success" value="Finish Test">Finish Test</button>
+    </form>
+{% endif %}
+{% endblock %}

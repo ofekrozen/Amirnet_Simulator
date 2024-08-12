@@ -1,0 +1,98 @@
+{% extends 'Simulator/simulator_layout.html'%}
+{% block title %}Simulator{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+    const prevbtn = document.querySelector('#prev');
+    const nextbtn = document.querySelector('#next');
+    const startbtn = document.querySelector('#start');
+    const inst = document.querySelector('#instructions');
+    const instructions = ['instructions 1','instructions 2','sample question']
+    const answers = document.querySelector('#answers');
+    const ansbuttons = answers.childNodes;
+
+    prevbtn.style.display = 'none';
+    inst.innerHTML = instructions[0];
+
+    ansbuttons.forEach(btn => {
+        btn.onclick = function(){
+            if (btn.innerHTML == '3'){
+                alert('Correct!');
+                startbtn.style.display = 'block';
+            }
+            else{
+                alert('Incorrect :(');
+                startbtn.style.display = 'none';
+            }};
+    });
+
+    var clickcnt = 0;
+    
+    nextbtn.onclick = function() {
+        console.log('Next Clicked!!');
+        if (clickcnt >= 0){
+            clickcnt ++;
+            startbtn.style.display = 'none';
+            if (clickcnt >= 2){
+                nextbtn.style.display = 'none';
+            }
+            inst.innerHTML = instructions[clickcnt];
+            prevbtn.style.display = 'block';
+
+            if (clickcnt == 2){
+                answers.style.display = 'block';
+            }
+            else{
+                answers.style.display = 'none';
+            }
+        }
+    };
+    prevbtn.onclick = function() {
+        console.log('Prev Clicked!');
+        
+        if (clickcnt > 0){
+            clickcnt --;
+            startbtn.style.display = 'none';
+            if (clickcnt <= 0 ){
+                prevbtn.style.display = 'none';
+            }
+            inst.innerHTML = instructions[clickcnt];
+            nextbtn.style.display = 'block';
+
+            if (clickcnt == 2){
+                answers.style.display = 'block';
+            }
+            else{
+                answers.style.display = 'none';
+            }
+        }
+    };
+});
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="card" style="text-align: center;">
+    <div id="simulator" class="card-body">
+        <div id="div-inst" class="card-body">
+            <h4 class="card-title">Simulator Insructions:</h4>
+            <p id="instructions" class="card-text"></p>
+            <div id="answers" style="display: none;">
+                <button id="ans1" class="btn btn-secondary">1</button>
+                <button id="ans2" class="btn btn-secondary">2</button>
+                <button id="ans3" class="btn btn-secondary">3</button>
+                <button id="ans4" class="btn btn-secondary">4</button>
+            </div>
+        </div>
+    <form method="post" action="{% url 'simulator'%}">
+        {% csrf_token %}
+    <div id="buttons" style="text-align: center;">
+        <button type="button" id="prev" class="btn btn-secondary">Previous</button>
+        <button type="button" id="next" class="btn btn-primary">Next</button>
+        <button type="submit" id="start" class="btn btn-success" style="display: none;">Start Simulator</button>
+    </div>
+    </form>
+    </div>
+</div>
+{% endblock %}

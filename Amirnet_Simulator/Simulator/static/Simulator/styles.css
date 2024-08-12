@@ -1,0 +1,88 @@
+body{
+    text-align: center;
+}
+div{
+    text-align: center;
+}
+.card{
+    text-align: center;
+}
+.card-title{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: x-large;
+    font-weight: bold;
+}
+.card-text{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: large;
+    font-weight: normal;
+}
+.timer {
+    display: inline-block;
+    width: 120px;
+    height: 120px;
+    border-radius: 60px; /* Make the div circular */
+    background-color: #f0f0f0;
+    border: 2px solid #333;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 120px; /* Center text vertically */
+    margin: 10px;
+    position: absolute;
+    right: 0px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timer span {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+}
+
+.table-secondary{
+    display: flex;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: normal;
+    text-align: center;
+    justify-content: center;
+    
+    
+    top: 50%;
+    border: 1px;
+    border-color: white;
+}
+.div-answers{
+    width: 100%;
+    margin: 20px,0px;
+}
+/* .table{
+    padding-left: 25%;
+    padding-right: 25%;
+} */
+.table{
+    width: 100%;
+    
+}
+
+.table td:nth-child(odd){
+    padding: 10px;
+    width: 50%;
+    text-align: right;
+}
+.table td:nth-child(even){
+    padding: 10px;
+    text-align: left;
+}
+
+.div-buttons, .div-chapter-display{
+    display: inline-flex;
+    text-align: center;
+    padding: 10px;
+}
+.div-buttons button, .chapter-display{
+    display: flex;
+    padding: 5px;
+    margin: 5px;
+}

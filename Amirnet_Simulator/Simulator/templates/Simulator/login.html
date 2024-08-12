@@ -1,0 +1,17 @@
+{% extends 'Simulator/layout.html' %}
+{% block title %} login {% endblock %}\
+{% block body %}
+<h2>Log In</h2>
+<form>
+    <label class="form-label" for="username">Username:</label>
+    <input class="form-control" type="text" name="username" placeholder="username" id="username">
+    <br>
+    <label class="form-label" for="password">Password:</label>
+    <input class="form-control" type="password" name="password" id="password" placeholder="password">
+    <br>
+    <input class="btn btn-primary" type="submit" value="Log In">
+    <div>
+        <a href="{% url 'register'%}">to register</a>
+    </div>
+</form>
+{% endblock %}
