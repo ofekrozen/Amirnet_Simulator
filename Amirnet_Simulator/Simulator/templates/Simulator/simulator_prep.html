@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         </div>
     <form method="post" action="{% url 'simulator'%}">
         {% csrf_token %}
-    <div id="buttons" style="text-align: center;">
+    <div class="div-buttons" id="buttons" style="text-align: center;">
         <button type="button" id="prev" class="btn btn-secondary">Previous</button>
         <button type="button" id="next" class="btn btn-primary">Next</button>
         <button type="submit" id="start" class="btn btn-success" style="display: none;">Start Simulator</button>

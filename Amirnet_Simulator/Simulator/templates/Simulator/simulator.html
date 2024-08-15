@@ -209,20 +209,23 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="timer" id="timer" data-time="{{chapter.time}}" data-chapterorder="{{chapter.order}}"></div>
         <div class="card-body">
             <div class="card-title" id="card-title">{{chapter.title}}</div>
+            {% if chapter.order == 3 %}
+                <div class="text-reading" id="text-reading">Text</div>
+            {% endif %}
             {% for question in chapter.questions %}
             <div class="question" name="question-{{question.order}}" id="question-{{question.order}}" data-order="{{question.order}}">
-            <div class="card-text">{{question.question}}</div>
-            <div class="div-answers">
-                <table class="table table-borderless">
-                    {% for order,answer in question.answers.items %}
-                        <tr>
-                            <td><input class="input-answer" type="radio" name="{{chapter.order}}-{{question.order}}" value="{{order}}"></td>
-                            <td><span>{{answer}}</span></td>
-                        </tr>
-                        <!-- <li type="none">{{answer}}</li> -->
-                    {% endfor %}
-                </table>
-            </div>
+                <div class="card-text">{{question.question}}</div>
+                <div class="div-answers">
+                    <table class="table table-borderless">
+                        {% for order,answer in question.answers.items %}
+                            <tr>
+                                <td><input class="input-answer" type="radio" name="{{chapter.order}}-{{question.order}}" value="{{order}}"></td>
+                                <td><span>{{answer}}</span></td>
+                            </tr>
+                            <!-- <li type="none">{{answer}}</li> -->
+                        {% endfor %}
+                    </table>
+                </div>
             <!-- replace name with question ID -->
             <!-- <button id="answer" class="btn-secondary" name="{{chapter.order}}-{{question.order}}" data-ansnbr="1">1</button>
             <button id="answer" class="btn-secondary" name="{{chapter.order}}-{{question.order}}" data-ansnbr="2">2</button>

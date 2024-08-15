@@ -36,3 +36,8 @@ def start_simulator(request):
 
     else:
         return render(request,'Simulator/simulator_prep.html')
+
+def upload(request):
+    if request.method == "POST":
+        pass
+    return render(request, 'Simulator/upload_test.html')
