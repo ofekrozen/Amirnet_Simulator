@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const answerinputs = document.querySelectorAll('.input-answer');
     const timers = document.querySelectorAll('#timer');
     const chapterdislpays = document.querySelectorAll('.chapter-display');
+    const questiondisplays = document.querySelectorAll('.question-display');
     const submitform = document.querySelector('#submitform');
     const submitinput = document.querySelector('#submitinput');
     const finishbtn = document.querySelector('#btn-finish');
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     nextChapterFunction();
     displayChapter();
     displayQuestions();
+    displayQuestions();
     
     prevqtn.style.display = 'none';
     nextchapter.style.display = 'none';
@@ -44,6 +46,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     answerinputs.forEach(radio => {
         radio.oninput = ()=>{
             answerjson[radio.getAttribute('name')] = radio.getAttribute('value');
+            updateQuestionDisplay();
             
             console.log(answerjson);
         }
@@ -122,6 +125,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         displayChapter();
         displayQuestions();
         updateChapterDisplay();
+        updateQuestionDisplay();
         currentchapter = getCurrentChapter();
         nextchapter.style.display='none';
         prevqtn.style.display='none';
@@ -178,6 +182,26 @@ document.addEventListener('DOMContentLoaded',()=>{
             }
         })
     }
+    
+    function updateQuestionDisplay(){
+        questiondisplays.forEach(question => {
+            if (question.getAttribute('data-chapterorder') == chaptercnt || (chaptercnt == 0 && question.getAttribute('data-chapterorder') == 1)){
+                question.style.display = 'block';
+                for (let key in answerjson){
+                    if(question.getAttribute('data-chapterorder')+'-'+question.getAttribute('data-order') == key){
+                        question.classList.replace('btn-secondary','btn-primary');
+                    }
+                    // else{
+                    //     question.classList.replace('btn-primary','btn-secondary');
+                    // }
+                };
+                
+            }
+            else{
+                question.style.display='none';
+            }
+        });
+    }
 
     
     function finishTest(){
@@ -199,8 +223,19 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     <div class="div-chapter-display">
     {% for chapter in chapters %}
-        <div class="chapter-display btn-secondary" data-order="{{chapter.order}}">{{chapter.title}}</div>
+        <div class="chapter-display btn-secondary" data-order="{{chapter.order}}">
+            {{chapter.title}}
+        </div>
     {% endfor %}
+    </div>
+    <div class="div-questions-display">
+        {% for chapter in chapters %}
+        {% for question in chapter.questions %}
+            <div class="question-display btn-secondary" data-questionid = "{{chapter.order}}-{{question.order}}" data-order="{{question.order}}" data-chapterorder = "{{chapter.order}}">
+                {{question.order}}
+            </div>
+        {% endfor %}
+        {% endfor %}
     </div>
 
     {% for chapter in chapters %}
@@ -213,7 +248,7 @@ document.addEventListener('DOMContentLoaded',()=>{
                 <div class="text-reading" id="text-reading">Text</div>
             {% endif %}
             {% for question in chapter.questions %}
-            <div class="question" name="question-{{question.order}}" id="question-{{question.order}}" data-order="{{question.order}}">
+            <div class="question" name="question-{{question.order}}" id="question-{{question.order}}" data-order="{{question.order}}" data-chapterorder="{{chapter.order}}">
                 <div class="card-text">{{question.question}}</div>
                 <div class="div-answers">
                     <table class="table table-borderless">

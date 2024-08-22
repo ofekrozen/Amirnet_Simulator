@@ -1,4 +1,28 @@
 {% extends 'Simulator/layout.html' %}
 {% block body %}
-
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file" required>
+    <input type="submit" class="btn btn-success" value="Submit File">
+</form>
+{% if chapters %}
+{% for chapter in chapters %}
+<div>
+    {% for section, items in chapter.items %}
+    <h3>{{section}}</h3>
+    <h4>Starting Page: {{items.start}} Ending Page: {{items.end}}</h4>
+    <p>
+        {{items.full_questions}}
+    </p>
+    <p>
+        Questions
+        {{items.questions}}
+        <br>
+        Answers
+        {{items.answers}}
+    </p>
+    {% endfor %}
+</div>
+{% endfor %}
+{% endif %}
 {% endblock %}

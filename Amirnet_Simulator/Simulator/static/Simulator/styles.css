@@ -4,6 +4,10 @@ body{
 div{
     text-align: center;
 }
+.nav{
+    text-align: center;
+}
+
 .card{
     text-align: center;
 }
@@ -76,15 +80,18 @@ div{
     text-align: left;
 }
 
-.div-buttons, .div-chapter-display{
+.div-buttons, .div-chapter-display, .div-questions-display{
     display: inline-flex;
     text-align: center;
     padding: 10px;
 }
-.div-buttons button, .chapter-display{
+.div-buttons button, .chapter-display, .question-display{
     display: flex;
     padding: 5px;
     margin: 5px;
+}
+.question-display{
+    width: 20px;
 }
 
 .text-reading{
