@@ -1,28 +1,38 @@
 {% extends 'Simulator/layout.html' %}
 {% block body %}
+{% if chapters %}
+<form method="post" action="{url 'save_test'}">
+    {% for chapter in chapters %}
+        {% for section, items in chapter.sections.items %}
+            <div id="{{chapter.chapter_order}}">
+                <h2>{{ section }}</h2>
+                <input type="hidden" value="{{section}}" name="section_subject">
+                {% if items.text %}
+                    <textarea name="text_{{ chapter.chapter_order }}-{{section}}" class="text-textarea">{{ items.text }}</textarea>
+                {% endif %}
+                {% for question in items.questions %}
+                    <div>
+                        <h4>Question {{ question.id }}</h4>
+                        <textarea name="question_{{ section }}_{{ question.id }}" class="question-textarea">{{ question.question }}</textarea>
+                        <br>
+                        {% for answer_key, answer in question.items %}
+                            {% if 'answer_' in answer_key %}
+                                <textarea name="answer_{{ answer.id }}" class="answer-textarea">{{ answer.text }}</textarea>
+                                <input type="radio" name="correct_{{ question.id }}" value="{{ answer.id }}">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    <input class="btn btn-success" type="submit" value="Save Test">
+</form>
+{% else %}
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="file" name="file" required>
     <input type="submit" class="btn btn-success" value="Submit File">
 </form>
-{% if chapters %}
-{% for chapter in chapters %}
-<div>
-    {% for section, items in chapter.items %}
-    <h3>{{section}}</h3>
-    <h4>Starting Page: {{items.start}} Ending Page: {{items.end}}</h4>
-    <p>
-        {{items.full_questions}}
-    </p>
-    <p>
-        Questions
-        {{items.questions}}
-        <br>
-        Answers
-        {{items.answers}}
-    </p>
-    {% endfor %}
-</div>
-{% endfor %}
 {% endif %}
 {% endblock %}

@@ -99,3 +99,11 @@ div{
     font-size: normal;
     font-weight: normal;   
 }
+
+.question-textarea{
+    width: 50%;
+}
+.text-textarea{
+    width: 50%;
+    height:auto;
+}
