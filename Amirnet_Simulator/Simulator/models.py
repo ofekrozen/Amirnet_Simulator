@@ -11,11 +11,17 @@ class Subject(models.Model):
     time = models.FloatField()
     question_cnt = models.PositiveIntegerField()
 
+    def __str__(self) -> str:
+        return self.subject_desc
+
 class Chapter(models.Model):
     # ID
     title = models.CharField(max_length=30)
     subject = models.ForeignKey(Subject,on_delete=models.CASCADE, related_name='related_chapters')
     text = models.CharField(max_length= 1000,null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.title
 
 class Question(models.Model):
     # ID
@@ -42,6 +48,9 @@ class Test(models.Model):
     title = models.CharField(max_length=30)
     create_date = models.DateField(auto_now_add=True)
     chapters = models.ManyToManyField(Chapter, through='TestChapter')
+
+    def __str__(self) -> str:
+        return self.title
 
 class TestChapter(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)

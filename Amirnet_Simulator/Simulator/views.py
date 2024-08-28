@@ -53,29 +53,46 @@ def upload(request):
 
 def save_test(request):
     if request.method == "POST":
-        pass
-    return render()
-
-def save_test2(request):
-    if request.method == "POST":
-        questions = []
-        answers = []
+        current_chapter = None
+        current_question = None
+        last_test = Test.objects.last()
+        last_subject = None
         for key, value in request.POST.items():
-            if key.startswith('question_'):
-                question_id = key.split('_')[1]  # Extract the question ID
-                question = Question.objects.get(id=question_id)  # Fetch the question by ID
-                question.desc = value.strip()  # Update the question text
-                question.save()
+            if key.startswith('test_order'):
+                if last_test is not None:
+                    last_test = Test.objects.create(title=f'Test_{last_test.id + 1}')
+                else:
+                    last_test = Test.objects.create(title='First_Test')
+            elif key.startswith('section_subject'):
+                chapter_order = key.split('-')[1]
+                if 'Text' in value.strip():
+                    last_subject = Subject.objects.get(subject_desc = 'Reading Comprehension')
+                else:
+                    last_subject = Subject.objects.get(subject_desc = value.strip())
+                current_chapter = Chapter.objects.create(title=f'{last_test.title}-{last_subject.subject_desc}',subject=last_subject)
+                test_chapter = TestChapter.objects.create(test=last_test, chapter = current_chapter, order=chapter_order)
+            elif key.startswith('text_'):
+                text = value.strip()
+                current_chapter.text = text
+                current_chapter.save()
+            elif key.startswith('question_'):
+                q_order = int(str(key.split('_')[2]).split('-')[2])
+                question_desc = value.strip()
+                correct_ans = 0
+                current_question = Question.objects.create(chapter=current_chapter, order = q_order, desc = question_desc, correct_answer = correct_ans)
             elif key.startswith('answer_'):
-                answer_id = key.split('_')[1]  # Extract the answer ID
-                answer = Answer.objects.get(id=answer_id)  # Fetch the answer by ID
-                answer.desc = value.strip()  # Update the answer text
-                answer.save()
+                ans_order = str(key.split('_')[1]).split('-')[3]
+                ans_desc = value.strip()
+                current_answer = Answer.objects.create(question=current_question, order = ans_order, desc = ans_desc)
+            elif key.startswith('correct_'):
+                current_question.correct_answer = int(str(value.strip()).split('-')[3])
+                current_answer.question = current_question
+                current_question.save()
+                current_answer.save()
 
-        return redirect('your_next_view_name')  # Replace with your actual view name
+        return redirect('index.html')  # Replace with your actual view name
 
-    chapters = Chapter.objects.all()
-    return render(request, 'Simulator/your_template.html', {'chapters': chapters})  # Replace with your actual template
+    return render(request, 'Simulator/upload_test.html')  # Replace with your actual template
 
 
 
@@ -120,64 +137,13 @@ def extract_english_sections_borders (pdfreader: PyPDF2.PdfReader)-> list:
             sections[chapter]['sections']['Text 2']['end'] = (engpagenumber, pagetext.find('עמוד ריק'))
     return sections
 
-# def extract_questions_from_sections (pdfreader: PyPDF2.PdfReader, section_borders: list) -> list:
-#     new_chapters = add_text_borders(pdfreader,section_borders)
-#     cnt = 0
-
-#     for chapter in new_chapters:
-#         for section in chapter:
-#             start_pointer = chapter[section]['start']
-#             end_pointer = chapter[section]['end']
-#             section_txt = []
-#             if start_pointer[0] == end_pointer[0]:
-#                 txt = pdfreader.pages[start_pointer[0]].extract_text()[start_pointer[1]:]
-#                 section_txt.append(re.split('[1-9]?\d\.[^\n]',txt)[1:])
-#                 # section_txt = pdfreader.pages[start_pointer[0]].extract_text()[start_pointer[1]:]
-#             else:
-#                 for pg in range(start_pointer[0],end_pointer[0]+1):
-#                     if pg == end_pointer[0]:
-#                         txt = pdfreader.pages[pg].extract_text()[:end_pointer[1]]
-#                     elif pg == start_pointer[0]:
-#                         txt = pdfreader.pages[pg].extract_text()[start_pointer[1]:]
-#                     else:
-#                         txt = pdfreader.pages[pg].extract_text()
-#                     splt = re.split('[1-9]?\d\.[^\n]',txt)[1:]
-#                     for x in range(len(splt)):
-#                         splt[x] = splt[x].replace('\n', '')
-#                     section_txt.append(splt)
-            
-            
-#             section_list = []
-#             for question_answers in section_txt:
-#                 for splt in question_answers:
-#                     section_list.append(re.split('\([1-9]\)',splt))
-#             new_chapters[cnt][section]['full_questions'] = section_list
-#         cnt += 1
-    
-#     cnt = 0
-#     for chapter in new_chapters:
-#         for section in chapter:
-#             new_chapters[cnt][section]['questions'] = []
-#             question_number = 1
-#             for question_answer in new_chapters[cnt][section]['full_questions']:
-                
-#                 for i in range(len(question_answer)):
-#                     if i == 0:
-#                         new_chapters[cnt][section]['questions'].append({f'question_{question_number}':question_answer[i]})
-#                     else:
-#                         new_chapters[cnt][section]['questions'][question_number - 1][f'answer_{i}'] = question_answer[i]
-#                 question_number += 1
-#             # new_chapters[cnt][section]['questions'] = [question[0] for question in new_chapters[cnt][section]['full_questions']]
-#             # new_chapters[cnt][section]['answers'] = [question[1:] for question in new_chapters[cnt][section]['full_questions']]
-#         cnt += 1
-
-#     return new_chapters
 
 def extract_questions_from_sections(pdfreader: PyPDF2.PdfReader, section_borders: list) -> list:
     new_chapters = add_text_borders(pdfreader, section_borders)
     cnt = 0
 
     for chapter in new_chapters:
+        section_cnt = 1
         for section in chapter['sections']:
             start_pointer = chapter['sections'][section]['start']
             end_pointer = chapter['sections'][section]['end']
@@ -208,12 +174,14 @@ def extract_questions_from_sections(pdfreader: PyPDF2.PdfReader, section_borders
             new_chapters[cnt]['sections'][section]['questions'] = []
             
             for question_answer in new_chapters[cnt]['sections'][section]['full_questions']:
-                question_dict = {'id': f'{cnt+1}-{question_id}', 'question': question_answer[0]}  # Add unique ID to the question
+                question_dict = {'id': f'{cnt+1}-{section_cnt}-{question_id}', 'question': question_answer[0]}  # Add unique ID to the question
                 for i in range(1, len(question_answer)):
-                    question_dict[f'answer_{i}'] = {'id': f'{cnt+1}-{question_id}-{i}', 'text': question_answer[i]}  # Add unique ID to each answer
+                    question_dict[f'answer_{i}'] = {'id': f'{cnt+1}-{section_cnt}-{question_id}-{i}', 'text': question_answer[i]}  # Add unique ID to each answer
                 new_chapters[cnt]['sections'][section]['questions'].append(question_dict)
                 question_id += 1
+            section_cnt += 1
         cnt += 1
+        
 
     return new_chapters
 
