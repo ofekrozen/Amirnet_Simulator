@@ -1,17 +1,22 @@
 {% extends 'Simulator/layout.html' %}
 {% block body %}
-{% if chapters %}
+{% if file_name %}
+<p>Successfully uploaded {{file_name}}</p>
+{% endif %}
+{% if tests %}
+<p>Edit uploaded test before saving</p>
 <form method="post" action="{% url 'save_test' %}">
     {% csrf_token %}
-    {% for chapter in chapters %}
-    <div>
-        <input type="hidden" name="test_order" value="{{forloop.counter}}">
-        {% for section, items in chapter.sections.items %}
+    <input type="hidden" name="file_name" value="{{file_name}}">
+    {% for test in tests %}
+    <div id="test-{{test.test_order}}">
+        <input type="hidden" name="test_order-{{test.test_order}}" value="{{test.test_order}}">
+        {% for section, items in test.sections.items %}
             <div>
                 <h2>{{ section }}</h2>
-                <input type="hidden" value="{{section}}" name="section_subject-{{forloop.counter}}">
+                <input type="hidden" value="{{section}}" name="section_subject-{{test.test_order}}-{{items.section_order}}">
                 {% if items.text %}
-                    <textarea name="text_{{ chapter.chapter_order }}-{{section}}" class="text-textarea">{{ items.text }}</textarea>
+                    <textarea name="text_{{ items.section_order }}-{{section}}" class="text-textarea">{{ items.text }}</textarea>
                 {% endif %}
                 {% for question in items.questions %}
                     <div>

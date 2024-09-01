@@ -3,7 +3,20 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    GENDER_CHOICES = [
+        ('M','Male'),
+        ('F','Female'),
+        ('O','Other')
+    ]
+
+    first_name = models.CharField(max_length=30, blank=False)
+    last_name = models.CharField(max_length=30, blank=False)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+    email = models.EmailField(unique=True)
+    joining_date = models.DateField(auto_now_add=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username','first_name','last_name','gender']
 
 class Subject(models.Model):
     # ID
@@ -33,6 +46,9 @@ class Question(models.Model):
     class Meta:
         unique_together = ('chapter','order')
         ordering = ['chapter','order']
+    
+    def __str__(self) -> str:
+        return f"{self.chapter} - question number {self.order}"
 
 class Answer(models.Model):
     # ID
@@ -42,6 +58,9 @@ class Answer(models.Model):
 
     class Meta:
         ordering = ['question','order']
+    
+    def __str__(self) -> str:
+        return f"{self.question} - answer number {self.order}"
 
 class Test(models.Model):
     # ID

@@ -1,15 +1,16 @@
+
 {% extends 'Simulator/auth_layout.html'%}
 {% block body %}
+<!-- registration/register.html -->
 
 <div class="form-container">
-    <h2>Login</h2>
+    <h2>Register</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}  <!-- Renders the form fields -->
-        <button type="submit">Login</button>
+        <button class="btn btn-success" type="submit">Register</button>
     </form>
-    <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+    <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
 </div>
-
 
 {% endblock %}

@@ -85,13 +85,16 @@ div{
     text-align: center;
     padding: 10px;
 }
-.div-buttons button, .chapter-display, .question-display{
+.div-buttons button, .chapter-display{
     display: flex;
     padding: 5px;
     margin: 5px;
 }
 .question-display{
     width: 20px;
+    display: block;
+    padding: 5px;
+    margin: 5px;
 }
 
 .text-reading{
