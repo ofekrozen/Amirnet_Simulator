@@ -4,14 +4,19 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import UserRegistrationForm, EmailLoginForm
 from random import randint
 from .models import *
-import re,math
+import re,math,random
 import PyPDF2
+import json
 
 # Create your views here.
 
-@login_required('login')
+@login_required(login_url='login')
 def index(request):
-    return render(request,'Simulator/index.html')
+    user = request.user
+    simulators = StudentSimulator.objects.filter(student = user).all()
+    return render(request,'Simulator/index.html',{
+        'simulators' : simulators
+    })
 
 
 def register(request):
@@ -44,25 +49,108 @@ def user_logout(request):
     return redirect('login')  # Redirect to the login page after logout
 
 @login_required(login_url='login')
+def analyze_simulator(request):
+    if request.method == "POST":
+        simulator_to_analyze = None
+        for key,value in request.POST.items():
+            if key == "simulator_id":
+                simulator_to_analyze = StudentSimulator.objects.get(id = int(value))
+        if simulator_to_analyze == None:
+            return redirect('index')
+        else:
+            chapter_questions = {'Sentence Completions':[], 'Restatements':[], 'Reading Comprehension' : []}
+            for subject in chapter_questions:
+                chapter_questions[subject] = list(StudentAnswers.objects.filter(simulator = simulator_to_analyze, question__chapter__subject__subject_desc = subject).all())
+            # questions = list(StudentAnswers.objects.filter(simulator = simulator_to_analyze).all())
+            return render(request, 'Simulator/analyze_simulator.html',{
+                'simulator' : simulator_to_analyze,
+                'chapter_questions' : chapter_questions
+                # 'questions' : questions
+            })
+    return redirect('index')
+
+@login_required(login_url = 'login')
+def finish_simulator(request):
+    user = request.user
+    if request.method == "POST":
+        answers = {}
+        chapters = {}
+        for key, value in request.POST.items():
+            print(f"key: {key}, value: {value}")
+            if key == "student_answers":
+                answers = json.loads(value)
+            elif key == "chapters_submit":
+                chapters = (value)
+        student_simulator = StudentSimulator.objects.create(student = user)
+        for q_id in answers:
+            current_question = Question.objects.get(id = int(q_id))
+            StudentAnswers.objects.create(student = user, simulator = student_simulator, question = current_question, answer_number = int(answers[q_id]))
+        return redirect('index')
+    return redirect('index')
+
+@login_required(login_url='login')
 def start_simulator(request):
     if request.method == "POST":
+        user = request.user
         subjects = {'Sentence Completions' : Subject.objects.get(subject_desc = 'Sentence Completions'), 'Restatements':Subject.objects.get(subject_desc = 'Restatements'),'Reading Comprehansions' : Subject.objects.get(subject_desc = 'Reading Comprehension')}
         ## Basic Layout needed
-        chapters = [{'order':1,'subject':subjects['Sentence Completions'],'title':'Sentence Completion 1','questioncnt':4,'time':4},{'order':2,'subject':subjects['Sentence Completions'],'title':'Sentence Completion 2','questioncnt':4,'time':4},{'order':3,'subject':subjects['Reading Comprehansions'],'title':'Reading Comprehansion','questioncnt':5,'time':15},{'order':4,'subject':subjects['Restatements'],'title':'Restatement 1','questioncnt':3,'time':6},{'order':5,'subject':subjects['Restatements'],'title':'Restatement 2','questioncnt':3,'time':6},{'order':6,'subject':subjects['Sentence Completions'],'title':'Sentence Completion 3','questioncnt':4,'time':4}]
-        test = []
-        questions = []
-        for j in range(2):
-            for i in range(4):
-                order = i+1
-                question = f'question {i+1}'
-                answers = {'1':'answer 1','2':'answer 2','3':'answer 3','4':'answer 4'}
-                correct = randint(1,4)
-                toappend = {'order':order,'question':question,'answers': answers,'correct':correct}
-                questions.append(toappend)
-
-            chapters[j]['questions'] = questions
-            questions = []
+        chapters = [
+            {'order':1,
+             'subject':subjects['Sentence Completions'],
+             'title':'Sentence Completion 1',
+             'questioncnt':subjects['Sentence Completions'].question_cnt,
+             'time':subjects['Sentence Completions'].time}
+             ,{'order':2,
+               'subject':subjects['Sentence Completions'],
+               'title':'Sentence Completion 2',
+               'questioncnt':subjects['Sentence Completions'].question_cnt,
+               'time':subjects['Sentence Completions'].time},
+               {'order':3,
+                'subject':subjects['Reading Comprehansions'],
+                'title':'Reading Comprehension',
+                'questioncnt': subjects['Reading Comprehansions'].question_cnt,
+                'time':subjects['Reading Comprehansions'].time},
+                {'order':4,
+                 'subject':subjects['Restatements'],
+                 'title':'Restatement 1',
+                 'questioncnt':subjects['Restatements'].question_cnt,
+                 'time':subjects['Restatements'].time},
+                 {'order':5,
+                  'subject':subjects['Restatements'],
+                  'title':'Restatement 2',
+                  'questioncnt':subjects['Restatements'].question_cnt,
+                  'time':subjects['Restatements'].time},
+                  {'order':6,
+                   'subject':subjects['Sentence Completions'],
+                   'title':'Sentence Completion 3',
+                   'questioncnt':subjects['Sentence Completions'].question_cnt,
+                   'time':subjects['Sentence Completions'].time}]
         
+        # Generate the questions for each section
+        user_answered_questions = generate_user_answered_questions(user)
+        for i in range(len(chapters)):
+            current_subject = chapters[i]['subject']
+            questions = []
+            # The user's answered questions:
+            answered_subject_questions = user_answered_questions[current_subject.subject_desc]
+            generated_text_chapter = None
+            if current_subject.subject_desc == 'Reading Comprehension':
+                generated_text_chapter = get_unanswered_text_section(answered_subject_questions)
+                chapters[i]['text'] = generated_text_chapter.text
+            for j in range(chapters[i]['questioncnt']):
+                order = j+1
+                question = generate_subject_question(answered_subject_questions,current_subject,generated_text_chapter)
+                fictive_student_answer = StudentAnswers(question = question, student = user, answer_number = 0)
+                user_answered_questions[current_subject.subject_desc].append(fictive_student_answer)
+                related_answers = Answer.objects.filter(question = question).all()
+                
+                answers = {}
+                for answer in related_answers:
+                    answers[f'{answer.order}'] = answer
+                toappend = {'order':order,'question':question,'answers':answers}
+                questions.append(toappend)
+            chapters[i]['questions'] = questions
+
         return render(request,'Simulator/simulator.html',{
             'chapters':chapters
         })
@@ -71,8 +159,95 @@ def start_simulator(request):
     else:
         return render(request,'Simulator/simulator_prep.html')
 
-def generate_subject_question(irrelevant_questions: list[Question], subject:Subject) -> Question:
-    pass
+"""
+### Return a Question within the questions of the relevant subjects that were not answered yet
+### If there is no such a Question, return a question that was answered wrong
+### If all answeres were correct, return a random question
+"""
+def generate_subject_question(answered_questions: list[StudentAnswers], subject:Subject, chapter:Chapter = None) -> Question:
+    if chapter is None:
+        all_subject_questions = Question.objects.filter(chapter__subject = subject).all()
+    else:
+        all_subject_questions = Question.objects.filter(chapter = chapter).all()
+    # Create answered Questions list
+    irrelevant_questions = [aq.question for aq in answered_questions]
+    for question in all_subject_questions:
+        if question not in irrelevant_questions:
+            return question
+    
+    # If there was no unanswered question, return the first false one.
+    correct_answered_questions = []
+    for aq in irrelevant_questions:
+        if aq.question.chapter.subject == subject:
+            if not aq.is_correct():
+                return aq.question
+            else:
+                correct_answered_questions.append(aq.question)
+
+    # If there were no wrong answers, try to return a correct answer.
+    if len(correct_answered_questions) > 0:
+        return random.choice(correct_answered_questions)
+    return None
+
+"""
+### Return an unanswered text section
+"""
+def get_unanswered_text_section (answered_questions: list[StudentAnswers]) -> Chapter:
+    text_subject = Subject.objects.get(subject_desc = "Reading Comprehension")
+    all_text_chapters = Chapter.objects.filter(subject = text_subject).all()
+    # Create answered text chapters list
+    answered_text_chapters = []
+    answered_text_questions = []
+    for aq in answered_questions:
+        q = aq.question
+        chapter = q.chapter
+        if chapter.subject == text_subject:
+            answered_text_questions.append(aq)
+            if chapter not in answered_text_chapters:
+                answered_text_chapters.append(chapter)
+    
+    chapter_to_ret = None
+    
+    for txt_c in all_text_chapters:
+        if txt_c not in answered_text_chapters:
+            chapter_to_ret = txt_c
+            break
+    if chapter_to_ret is not None:
+        return chapter_to_ret
+    
+    # If all text chapters were done, return the worst one
+    to_find_worst_chapter = []
+    for txt_c in answered_text_chapters:
+        to_dict = {}
+        to_dict['chapter'] = txt_c
+        total,correct = (0,0)
+        for aq in answered_text_questions:
+            if aq.question.chapter == txt_c:
+                total+=1
+                if aq.is_correct():
+                    correct += 1
+        to_dict['success_rate'] = correct*100/total
+        to_find_worst_chapter.append(to_dict)
+    min_rate = 999
+    min_chapter = None
+    for chapter_dict in to_find_worst_chapter:
+        if chapter_dict['success_rate'] < min_rate:
+            min_rate = chapter_dict['success_rate']
+            min_chapter = chapter_dict['chapter']
+    return min_chapter
+
+
+"""
+### Return answered questions in the following format: {'Sentance Completions':[],'Restatements':[],'Reading Comprehension':[]}
+"""
+def generate_user_answered_questions(user:User) -> dict: 
+    answered_questions = StudentAnswers.objects.filter(student = user).all()
+    to_dict = {'Sentence Completions':[],'Restatements':[],'Reading Comprehension':[]}
+    for sa in answered_questions:
+        for key in to_dict.keys():
+            if sa.question.chapter.subject.subject_desc == key:
+                to_dict[key].append(sa)
+    return to_dict
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def upload(request):
@@ -130,6 +305,11 @@ def save_test(request):
                 current_answer.question = current_question
                 current_question.save()
                 current_answer.save()
+            if current_chapter is not None and current_chapter.subject == Subject.objects.get(subject_desc = 'Reading Comprehension'):
+                print(f'Current chapter: {current_chapter}')
+                print(f'Current question: {current_question}')
+                print(f'Current answer: {current_answer}')
+                print("********")
 
         return redirect('index') # render(request,'Simulator/index.html')
 
@@ -216,7 +396,7 @@ def extract_questions_from_sections(pdfreader: PyPDF2.PdfReader, section_borders
             new_chapters[cnt]['sections'][section]['questions'] = []
             
             for question_answer in new_chapters[cnt]['sections'][section]['full_questions']:
-                question_dict = {'id': f'{cnt+1}-{section_cnt}-{question_id}', 'question': question_answer[0]}  # Add unique ID to the question
+                question_dict = {'id': f'{cnt+1}-{section_cnt}-{question_id}', 'question': question_answer[0].replace('  ',' ___ ')}  # Add unique ID to the question
                 for i in range(1, len(question_answer)):
                     question_dict[f'answer_{i}'] = {'id': f'{cnt+1}-{section_cnt}-{question_id}-{i}', 'text': question_answer[i]}  # Add unique ID to each answer
                 new_chapters[cnt]['sections'][section]['questions'].append(question_dict)

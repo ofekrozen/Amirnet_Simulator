@@ -1,0 +1,41 @@
+{% extends 'Simulator/simulator_layout.html' %}
+{% block title %}
+Analysis
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+
+{% block body %}
+{% if simulator %}
+<h1>{{simulator}} - Analysis</h1>
+
+<div>
+    {% for subject,questions in chapter_questions.items %}
+    <div>
+        <h3>{{subject}}</h3>
+        {% if subject == 'Reading Comprehension' %}
+        <p>{{questions.0.question.chapter.text}}</p>
+        {% endif %}
+        {% for question in questions %}
+        <div>{{question.question.desc}}</div>
+        <div class="card">
+            <ul>
+            {% for answer in question.get_all_answers %}
+                {% if answer.order == question.answer_number and question.is_correct %}
+                    <li class="list-group-item border-success">{{answer.desc}}</li>
+                {% elif answer.order == question.answer_number and not question.is_correct %}
+                    <li class="list-group-item border-danger">{{answer.desc}}</li>
+                {% else %}
+                    <li class="list-group-item">{{answer.desc}}</li>
+                {% endif %}
+
+            {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

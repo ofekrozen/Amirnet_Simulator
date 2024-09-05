@@ -1,6 +1,33 @@
 {% extends "Simulator/layout.html" %}
 {% block title %}Main{% endblock %}
 
+{% block scripts %}
+{% endblock %}
+
 {% block body %}
 <a class="btn btn-success" href ="{% url 'simulator'%}">Start Simulator</a>
+
+{% if simulators %}
+<div>
+    <table class="table table-border">
+        <thead class="table-light">
+            <tr><th>Simulator Title</th><th>Date Taken</th><th>Success Rate</th><th>Analysis</th></tr>
+        </thead>
+        <tbody>
+            {% for simulator in simulators %}
+            <tr>
+                <td>{{simulator}}</td>
+                <td>{{simulator.date_taken}}</td>
+                <td>{{simulator.get_success_rate}}</td>
+                <form method="post" action="{% url 'analyze_simulator' %}">
+                {% csrf_token %}
+                    <input type="hidden" name="simulator_id" value="{{simulator.id}}">
+                    <td><button type="submit" class="btn btn-secondary">Analyze Test</button></td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 {% endblock %}

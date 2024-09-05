@@ -34,7 +34,7 @@ div{
     text-align: center;
     line-height: 120px; /* Center text vertically */
     margin: 10px;
-    position: absolute;
+    position: relative;
     right: 0px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -65,17 +65,16 @@ div{
     padding-left: 25%;
     padding-right: 25%;
 } */
-.table{
+.simulator-table{
     width: 100%;
-    
 }
 
-.table td:nth-child(odd){
+.simulator-table td:nth-child(odd){
     padding: 10px;
     width: 50%;
     text-align: right;
 }
-.table td:nth-child(even){
+.simulator-table td:nth-child(even){
     padding: 10px;
     text-align: left;
 }
@@ -94,15 +93,17 @@ div{
     width: 20px;
     display: block;
     padding: 5px;
-    margin: 5px;
+    margin: 10px;
 }
 
 .text-reading{
     font-family: Arial, Helvetica, sans-serif;
     font-size: normal;
-    font-weight: normal;   
+    font-weight: normal;
+    margin: 10px;
 }
 
+/* Edit Test */
 .question-textarea{
     width: 50%;
 }

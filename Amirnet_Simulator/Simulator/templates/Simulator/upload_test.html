@@ -16,7 +16,7 @@
                 <h2>{{ section }}</h2>
                 <input type="hidden" value="{{section}}" name="section_subject-{{test.test_order}}-{{items.section_order}}">
                 {% if items.text %}
-                    <textarea name="text_{{ items.section_order }}-{{section}}" class="text-textarea">{{ items.text }}</textarea>
+                    <textarea name="text_{{test.test_order}}-{{ items.section_order }}-{{section}}" class="text-textarea">{{ items.text }}</textarea>
                 {% endif %}
                 {% for question in items.questions %}
                     <div>

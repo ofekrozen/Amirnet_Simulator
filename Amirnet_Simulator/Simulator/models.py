@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import math
 
 
 class User(AbstractUser):
@@ -83,19 +84,50 @@ class TestChapter(models.Model):
     def __str__(self):
         return f"{self.chapter.title} in {self.test.title} (Order: {self.order})"
 
+class StudentSimulator(models.Model):
+    # ID
+    student = models.ForeignKey(User,on_delete=models.CASCADE,related_name='simulators')
+    simulator_number = models.PositiveIntegerField()
+    date_taken = models.DateField(auto_now_add=True)
+    
+    def __str__(self) -> str:
+        return f"Simulator number {self.simulator_number} from {self.date_taken}"
+    
+    def save(self, *args, **kwargs):
+        # Check if this is a new object (no primary key yet)
+        if not self.pk:
+            # Get the last simulator_number for the student
+            last_simulator = StudentSimulator.objects.filter(student=self.student).order_by('simulator_number').last()
+            
+            # If a previous simulator exists, increment its simulator_number by 1, otherwise set it to 1
+            if last_simulator:
+                self.simulator_number = last_simulator.simulator_number + 1
+            else:
+                self.simulator_number = 1
+        
+        # Call the original save method
+        super(StudentSimulator, self).save(*args, **kwargs)
+    def get_success_rate(self):
+        all_questions = list(StudentAnswers.objects.filter(simulator = self).all())
+        correct_questions = []
+        for q in all_questions:
+            if q.is_correct():
+                correct_questions.append(q)
+        return f"{math.ceil(len(correct_questions)*100 / len(all_questions))}%"
+
 class StudentAnswers(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='answers')
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='answered_tests')
+    simulator = models.ForeignKey(StudentSimulator, on_delete=models.CASCADE, related_name='questions')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answered_questions')
     answer_number = models.IntegerField(choices=[
         (0,'0'),(1,'1'),(2,'2'),(3,'3'),(4,'4')
     ])
 
     def is_correct(self):
-        return self.answer_number == self.question.correctanswer
+        return self.answer_number == self.question.correct_answer
     
     def get_full_question(self) -> dict:
-        answers = self.question.related_answers.all()
+        answers = list(Answer.objects.filter(question = self.question).all())
         return {
             'question_desc':self.question.desc, 
             'answer 1': answers[0], 
@@ -104,12 +136,14 @@ class StudentAnswers(models.Model):
             'answer 4': answers[3]
             }
     
-    def get_full_answer(self) -> Answer:
-        answers = self.question.related_answers.all()
-        if self.answer_number > 0:
-            return answers[self.answer_number - 1]
-        else:
-            return None
+    def get_my_answer(self) -> Answer:
+        return Answer.objects.get(question = self.question, order = self.answer_number)
+
+    def get_answer_by_number(self,number) -> Answer:
+        return Answer.objects.get(question = self.question, order = number)
+    
+    def get_all_answers(self):
+        return list(Answer.objects.filter(question = self.question).all())
     
     class Meta:
-        ordering = ['student','test','question']
+        ordering = ['student','question']

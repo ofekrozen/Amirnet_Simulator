@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     const chapterdislpays = document.querySelectorAll('.chapter-display');
     const questiondisplays = document.querySelectorAll('.question-display');
     const submitform = document.querySelector('#submitform');
-    const submitinput = document.querySelector('#submitinput');
+    const submitinput = document.querySelector('#student_answers');
+    const chapters_submit = document.querySelector('#chapters_submit');
     const finishbtn = document.querySelector('#btn-finish');
     var chaptercnt = 0;
     var questioncnt = 1;
@@ -43,9 +44,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     nextchapter.onclick = function() {nextChapterClick()};
     finishbtn.onclick = function() {finishTest();}
     
+    /* Fill answerinputs with fictive answers for each question */
+    var question_ids = []
+    questions.forEach(q => {
+        let q_id = q.getAttribute('data-questionid');
+        answerjson[q_id] = 0;
+        question_ids.push(q_id);
+    });
+
     answerinputs.forEach(radio => {
         radio.oninput = ()=>{
-            answerjson[radio.getAttribute('name')] = radio.getAttribute('value');
+            answerjson[radio.getAttribute('data-questionid')] = radio.getAttribute('value');
             updateQuestionDisplay();
             
             console.log(answerjson);
@@ -188,8 +197,10 @@ document.addEventListener('DOMContentLoaded',()=>{
             if (question.getAttribute('data-chapterorder') == chaptercnt || (chaptercnt == 0 && question.getAttribute('data-chapterorder') == 1)){
                 question.style.display = 'block';
                 for (let key in answerjson){
-                    if(question.getAttribute('data-chapterorder')+'-'+question.getAttribute('data-order') == key){
-                        question.classList.replace('btn-secondary','btn-primary');
+                    if(question.getAttribute('data-questionid') == key){ /*question.getAttribute('data-chapterorder')+'-'+question.getAttribute('data-order')*/
+                        if (answerjson[key]!= 0){
+                            question.classList.replace('btn-secondary','btn-primary');
+                        }
                     }
                     // else{
                     //     question.classList.replace('btn-primary','btn-secondary');
@@ -205,7 +216,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     
     function finishTest(){
-        submitinput.value = answerjson;
+        submitinput.value = JSON.stringify(answerjson);
+        chapters_submit.value = question_ids;
         submitform.submit();
     }
 
@@ -245,18 +257,18 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="timer" id="timer" data-time="{{chapter.time}}" data-chapterorder="{{chapter.order}}"></div>
         <div class="card-body">
             <div class="card-title" id="card-title">{{chapter.title}}</div>
-            {% if chapter.order == 3 %}
-                <div class="text-reading" id="text-reading">Text</div>
+            {% if chapter.subject.subject_desc == 'Reading Comprehension' %}
+                <div class="text-reading" id="text-reading">{{chapter.text}}</div>
             {% endif %}
             {% for question in chapter.questions %}
-            <div class="question" name="question-{{question.order}}" id="question-{{question.order}}" data-order="{{question.order}}" data-chapterorder="{{chapter.order}}">
-                <div class="card-text">{{question.question}}</div>
+            <div class="question" name="question-{{question.order}}" id="{{chapter.order}}-{{question.order}}" data-order="{{question.order}}" data-chapterorder="{{chapter.order}}" data-questionid="{{question.question.id}}">
+                <div class="card-text">{{question.question.desc}}</div>
                 <div class="div-answers">
-                    <table class="table table-borderless">
+                    <table class="simulator-table table table-borderless">
                         {% for order,answer in question.answers.items %}
                             <tr>
-                                <td><input class="input-answer" type="radio" name="{{chapter.order}}-{{question.order}}" value="{{order}}"></td>
-                                <td><span>{{answer}}</span></td>
+                                <td><input class="input-answer" type="radio" name="{{chapter.order}}-{{question.order}}" data-questionid="{{question.question.id}}" value="{{order}}"></td>
+                                <td><span>{{answer.desc}}</span></td>
                             </tr>
                             <!-- <li type="none">{{answer}}</li> -->
                         {% endfor %}
@@ -282,10 +294,14 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="nextchapter" class="btn-success" onclick="nextChapterClick()">Next Chapter</button>
     </div>
 
-    <form style="display: none;" id="submitform">
+    <div>
+    <form method="post" style="display: none;" id="submitform" action="{% url 'finish' %}">
         {% csrf_token %}
-        <input type="hidden" id="submitinput">
-        <button id="btn-finish" class="btn-success" value="Finish Test">Finish Test</button>
+        <input type="hidden" id="student_answers" name="student_answers">
+        <input type="hidden" id="chapters_submit" name="chapters_submit" value="{{chapters}}">
+        
+        <button id="btn-finish" class="btn btn-success" value="Finish Test">Finish Test</button>
     </form>
+    </div>
 {% endif %}
 {% endblock %}
