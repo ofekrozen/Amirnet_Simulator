@@ -170,14 +170,15 @@ def generate_subject_question(answered_questions: list[StudentAnswers], subject:
     else:
         all_subject_questions = Question.objects.filter(chapter = chapter).all()
     # Create answered Questions list
-    irrelevant_questions = [aq for aq in answered_questions]
+    irrelevant_answer_questions = [aq for aq in answered_questions]
+    irrelevant_questions = [aq.question for aq in answered_questions]
     for question in all_subject_questions:
         if question not in irrelevant_questions:
             return question
     
     # If there was no unanswered question, return the first false one.
     correct_answered_questions = []
-    for aq in irrelevant_questions:
+    for aq in irrelevant_answer_questions:
         if aq.question.chapter.subject == subject:
             if not aq.is_correct():
                 return aq.question
