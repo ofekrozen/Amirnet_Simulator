@@ -170,7 +170,7 @@ def generate_subject_question(answered_questions: list[StudentAnswers], subject:
     else:
         all_subject_questions = Question.objects.filter(chapter = chapter).all()
     # Create answered Questions list
-    irrelevant_questions = [aq.question for aq in answered_questions]
+    irrelevant_questions = [aq for aq in answered_questions]
     for question in all_subject_questions:
         if question not in irrelevant_questions:
             return question
