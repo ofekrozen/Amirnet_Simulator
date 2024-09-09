@@ -12,22 +12,24 @@ Analysis
 
 <div>
     {% for subject,questions in chapter_questions.items %}
-    <div>
+    <div class="div-centered">
         <h3>{{subject}}</h3>
         {% if subject == 'Reading Comprehension' %}
-        <p>{{questions.0.question.chapter.text}}</p>
+        <p class="chapter_text">{{questions.0.question.chapter.text}}</p>
         {% endif %}
         {% for question in questions %}
         <div>{{question.question.desc}}</div>
         <div class="card">
-            <ul>
+            <ul class="card-ul">
             {% for answer in question.get_all_answers %}
                 {% if answer.order == question.answer_number and question.is_correct %}
-                    <li class="list-group-item border-success">{{answer.desc}}</li>
+                    <li class="list_item border-success">{{answer.desc}}</li>
                 {% elif answer.order == question.answer_number and not question.is_correct %}
-                    <li class="list-group-item border-danger">{{answer.desc}}</li>
+                    <li class="list_item border-danger">{{answer.desc}}</li>
+                {% elif answer.order != question.answer_number and answer.order == question.question.correct_answer %}
+                    <li class="list_item border-primary">{{answer.desc}}</li>
                 {% else %}
-                    <li class="list-group-item">{{answer.desc}}</li>
+                    <li class="list_item">{{answer.desc}}</li>
                 {% endif %}
 
             {% endfor %}

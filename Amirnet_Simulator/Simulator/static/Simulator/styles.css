@@ -111,3 +111,40 @@ div{
     width: 50%;
     height:auto;
 }
+
+/* Analysis */
+.div-centered{
+    margin: auto;
+}
+/* .list-group-item */
+.border-success{
+    color:green;
+    background-color: lightgrey;
+}
+/* .list-group-item */
+.border-danger{
+    color:red;
+    background-color: lightgrey;
+}
+/* .list-group-item */
+.border-primary{
+    color:darkblue;
+    background-color: lightgrey;
+}
+
+.card-ul{
+    align-self: center;
+    width: 50%;
+}
+.list_item{
+    
+    /* width: 50%; */
+    border: 2px solid grey;
+    border-radius: 50px 50px;
+    list-style: none;
+}
+.chapter_text{
+    margin: auto;
+    width: 50%;
+    text-align: center;
+}
