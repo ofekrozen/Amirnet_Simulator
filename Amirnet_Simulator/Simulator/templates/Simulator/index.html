@@ -2,20 +2,6 @@
 {% block title %}Main{% endblock %}
 
 {% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded',()=>{
-        delete_btns = document.querySelectorAll('#delete_btn');
-        console.log("Hello");
-        delete_btns.forEach(btn => {
-            
-            btn.onclick = ()=>{
-                if (window.confirm("האם אתה בטוח שתרצה למחוק את הסימולטור הזה?")){
-                    btn.parentElement.parentElement.submit();
-                }
-            }
-        });
-    });
-</script>
 {% endblock %}
 
 {% block body %}
@@ -38,10 +24,10 @@
                     <input type="hidden" name="simulator_id" value="{{simulator.id}}">
                     <td><button type="submit" class="btn btn-secondary">Analyze Simulator</button></td>
                 </form>
-                <form id="delete_form" method="post" action="">
+                <form id="delete_form" method="post" action="{% url 'delete_simulator' %}" onsubmit="return confirm('האם אתה בטוח שתרצה למחוק את המבחן?')">
                     {% csrf_token %}
                         <input type="hidden" name="simulator_id" value="{{simulator.id}}">
-                        <td><button  id="delete_btn" class="btn btn-danger">Delete</button></td>
+                        <td><button type="submit" id="delete_btn" class="btn btn-danger">Delete</button></td>
                 </form>
             </tr>
             {% endfor %}

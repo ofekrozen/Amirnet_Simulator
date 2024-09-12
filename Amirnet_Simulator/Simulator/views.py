@@ -277,6 +277,13 @@ def upload(request):
     return render(request, 'Simulator/upload_test.html')
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
+def edit_uploaded_test(request):
+    if request.method == "POST":
+        pass
+    uploaded_tests = 
+    return render(request,'Simulator/edit_uploaded_test.html')
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
 def save_test(request):
     if request.method == "POST":
         current_chapter = None
