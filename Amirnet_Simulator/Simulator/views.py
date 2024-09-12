@@ -49,6 +49,16 @@ def user_logout(request):
     return redirect('login')  # Redirect to the login page after logout
 
 @login_required(login_url='login')
+def delete_simulator(request):
+    if request.method =="POST":
+        user = request.user
+        for key,value in request.POST.items():
+            if key == "simulator_id":
+                simulator_to_delete = StudentSimulator.objects.get(id = int(value), student = user)
+                simulator_to_delete.delete()
+    return redirect('index')
+
+@login_required(login_url='login')
 def analyze_simulator(request):
     if request.method == "POST":
         simulator_to_analyze = None
