@@ -14,4 +14,5 @@ urlpatterns = [
     path("analyze_simulator",views.analyze_simulator,name="analyze_simulator"),
     path("delete_simulator",views.delete_simulator,name="delete_simulator"),
     path("edit_uploaded_test",views.edit_uploaded_test,name="edit_uploaded_test"),
+    path("save_edited_test",views.save_edited_test,name="save_edited_test"),
 ]

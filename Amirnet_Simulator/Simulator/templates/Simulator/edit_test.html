@@ -1,0 +1,41 @@
+{% extends 'Simulator/layout.html' %}
+{% block title %}Edit Test{% if test_to_edit %}-{{test_to_edit.id}}{% endif %}{% endblock %}
+{% block scripts %}
+{% endblock %}
+
+{% block body %}
+{% if test_to_edit %}
+<p><b>Edit</b> {{test_to_edit.title}}</p>
+{% endif %}
+{% if chapters %}
+<form method="post" action="{% url 'save_edited_test' %}" onsubmit="return confirm('האם אתה בטוח שתרצה לשמור את המבחן?')">
+{% csrf_token %}
+{% for chapter in chapters %}
+<div class="chapter">
+    <h3>{{chapter.subject}}</h3>
+    {% if chapter.subject.subject_desc == "Reading Comprehension" %}
+    <div>
+    <textarea name="text_{{chapter.id}}" id="text_{{chapter.id}}" style="height: 100%;width: 100%;" rows="30">{{chapter.text}}</textarea>
+    </div>
+    {% endif %}
+    {% for question in chapter.get_questions %}
+    <div class="question">
+        <textarea name="question_{{question.id}}" id="question_{{question.id}}" rows="2" cols="50">{{question.desc}}</textarea>
+        <div class="answers">
+        {% for answer in question.get_answers %}
+        <textarea name="answer_{{answer.id}}" id ="answer_{{answer.id}}" rows="2" cols="20">{{answer.desc}}</textarea>
+        {% if question.correct_answer == answer.order %}
+        <input type="radio" name="answerinput_{{question.id}}" value="{{answer.id}}" checked>
+        {% else %}
+        <input type="radio" name="answerinput_{{question.id}}" value="{{answer.id}}">
+        {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+<button type="submit" class="btn btn-success">Save Changes</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -36,6 +36,9 @@ class Chapter(models.Model):
 
     def __str__(self) -> str:
         return self.title
+    
+    def get_questions(self) -> list:
+        return list(Question.objects.filter(chapter = self).all())
 
 class Question(models.Model):
     # ID
@@ -50,6 +53,9 @@ class Question(models.Model):
     
     def __str__(self) -> str:
         return f"{self.chapter} - question number {self.order}"
+    
+    def get_answers(self) -> list:
+        return list(Answer.objects.filter(question = self).all())
 
 class Answer(models.Model):
     # ID
@@ -71,6 +77,12 @@ class Test(models.Model):
 
     def __str__(self) -> str:
         return self.title
+    
+    def get_chapters(self) -> list:
+        to_return = []
+        for test_chapter in TestChapter.objects.filter(test = self):
+            to_return.append(test_chapter.chapter)
+        return to_return
 
 class TestChapter(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)

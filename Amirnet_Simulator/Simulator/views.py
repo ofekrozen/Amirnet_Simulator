@@ -261,6 +261,52 @@ def generate_user_answered_questions(user:User) -> dict:
     return to_dict
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
+def edit_uploaded_test(request):
+    if request.method == "POST":
+        test_to_edit = None
+        for key,value in request.POST.items():
+            if key.strip() == "test_id":
+                test_to_edit = Test.objects.get(id = int(value.strip()))
+        if test_to_edit is not None:
+            chapters = test_to_edit.get_chapters()
+            context = {'test_to_edit':test_to_edit,'chapters':chapters}
+            return render(request,'Simulator/edit_test.html',context)
+    uploaded_tests = Test.objects.all()
+    return render(request,'Simulator/edit_test_selection.html',{
+        'uploaded_tests': uploaded_tests
+    })
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def save_edited_test(request):
+    if request.method == "POST":
+        chapter = None
+        question = None
+        answer = None
+        for key,value in request.POST.items():
+            if key.startswith('text_'):
+                chapter = Chapter.objects.get(id = key.strip().split('_')[-1])
+                chapter.text = value.strip()
+                chapter.save()
+            if key.startswith('question_'):
+                question = Question.objects.get(id = key.strip().split('_')[-1])
+                question.desc = value.strip()
+                question.save()
+            if key.startswith('answer_'):
+                answer = Answer.objects.get(id = key.strip().split('_')[-1])
+                answer.desc = value.strip()
+                answer.save()
+            if key.startswith('answerinput_'):
+                question = Question.objects.get(id = key.strip().split('_')[-1])
+                answer = Answer.objects.get(id = int(value.strip()))
+                question.correct_answer = answer.order
+                question.save()
+        print('Test Saved Successfully!')
+    else:
+        print('Did not save')
+    return redirect('edit_uploaded_test')
+    
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
 def upload(request):
     if request.method == "POST":
         if 'file' in request.FILES:
@@ -275,13 +321,6 @@ def upload(request):
                 'file_name':file_name
             })
     return render(request, 'Simulator/upload_test.html')
-
-@user_passes_test(lambda u: u.is_superuser, login_url='login')
-def edit_uploaded_test(request):
-    if request.method == "POST":
-        pass
-    uploaded_tests = 
-    return render(request,'Simulator/edit_uploaded_test.html')
 
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def save_test(request):

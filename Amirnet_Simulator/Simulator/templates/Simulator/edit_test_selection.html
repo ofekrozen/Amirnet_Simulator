@@ -1,0 +1,29 @@
+{% extends 'Simulator/layout.html' %}
+{% block title %}Edit{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block body %}
+{% if uploaded_tests %}
+<table class="table table-striped">
+    <thead>
+    <tr><th>#</th><th>Title</th><th>Date Uploaded</th><th>Edit</th></tr>
+    </thead>
+    <tbody>
+        {% for test in uploaded_tests %}
+        <tr>
+            <th>{{forloop.counter}}</th>
+            <td>{{test.title}}</td>
+            <td>{{test.create_date}}</td>
+            <td>
+                <form method="post" action="{% url 'edit_uploaded_test'%}">
+                    {% csrf_token %}
+                    <input type="hidden" name="test_id" value="{{test.id}}">
+                    <button class="btn btn-secondary" type="submit">Edit</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}
