@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded',()=>{
                 question.style.display = 'block';
                 for (let key in answerjson){
                     if(question.getAttribute('data-questionid') == key){ /*question.getAttribute('data-chapterorder')+'-'+question.getAttribute('data-order')*/
-                        if (answerjson[key]!= 0){
+                        if (answerjson[key] != 0){
                             question.classList.replace('btn-secondary','btn-primary');
                         }
                     }
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="div-questions-display">
         {% for chapter in chapters %}
         {% for question in chapter.questions %}
-            <div class="question-display btn-secondary" data-questionid = "{{chapter.order}}-{{question.order}}" data-order="{{question.order}}" data-chapterorder = "{{chapter.order}}">
+            <div class="question-display btn-secondary" data-questionid = "{{question.question.id}}" data-order="{{question.order}}" data-chapterorder = "{{chapter.order}}">
                 {{question.order}}
             </div>
         {% endfor %}
